@@ -7,20 +7,27 @@ const public_users = express.Router();
 
 public_users.post("/register", (req,res) => {
   //Write your code here
-  let username = req.body.username
-  let password = req.body.password
+  let { username, password } = req.body
 
-  if(username && password && isValid(username)) {
-    users.push( {
-        username,
-        password
-    })
-    return res.json({message: `Customer successfully registred.`});
-  } else {
-    console.log("Name: " + username)
-    console.log("Pass: " + password)
-    return res.send(`Unable to register, username is invalid / exists. Choose a different username.`)
+  const userIsValid = isValid(username)
+
+  if (!username || !password) {
+        return res.status(400).json({ 
+            message: "Username and password are required to register" 
+        });
   }
+  if (!userIsValid) {
+    return res.status(409).json({ 
+          message: "Username already exists. Please choose another username" 
+    });
+  }
+
+  users.push( {
+      username,
+      password
+  })
+  return res.status(201).json({message: `Customer successfully registred.`});
+
 });
 
 // Get the book list available in the shop
@@ -34,7 +41,16 @@ public_users.get('/isbn/:isbn',function (req, res) {
   //Write your code here
   let isbn = req.params.isbn;
   let book = books[isbn]
-  return res.json(book)
+  if (book){
+    return res.status(200).json({ 
+            message: `Book details with ISBN ${isbn}`,
+            book: book
+    })
+  } else {
+    return res.status(404).json({ 
+            message: `Book with ISBN ${isbn} not found. Please check the ISBN code again.` 
+    });
+  }
  });
   
 // Get book details based on author
